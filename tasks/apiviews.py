@@ -10,9 +10,11 @@ from django_filters.rest_framework import (
     FilterSet,
     CharFilter,
     ChoiceFilter,
-    BooleanFilter
+    BooleanFilter,
+    DateFilter,
 )
 from rest_framework import generics, mixins
+from django.forms import DateInput
 
 
 class TaskFilter(FilterSet):
@@ -21,6 +23,7 @@ class TaskFilter(FilterSet):
     class Meta:
         model = Task
         fields = ("title", "description", "completed", "status")
+
 
 class UserSerializer(ModelSerializer):
     class Meta:
@@ -57,10 +60,12 @@ class TaskListAPI(APIView):
         return Response({"tasks": data})
 
 
-class TaskFilter(FilterSet):
-    title = CharFilter(lookup_expr="icontains")
-    status = ChoiceFilter(choices=STATUS_CHOICES)
-    completed = BooleanFilter()
+class HistoryFilter(FilterSet):
+    changed_date = DateFilter(widget=DateInput(attrs={"type": "date"}))
+
+    class Meta:
+        model = History
+        fields = ("prev_status", "updated_status", "changed_date")
 
 
 class HistorySerializer(ModelSerializer):
@@ -70,8 +75,18 @@ class HistorySerializer(ModelSerializer):
         model = History
         fields = "__all__"
 
-class HistoryViewSet(mixins.RetrieveModelMixin,mixins.DestroyModelMixin,mixins.ListModelMixin,GenericViewSet):
+
+class HistoryViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     queryset = History.objects.all()
     serializer_class = HistorySerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = HistoryFilter
 
-    
+    def get_queryset(self):
+        return History.objects.filter(task_changed__pk=self.kwargs["task_pk"], task_changed__user = self.request.user)

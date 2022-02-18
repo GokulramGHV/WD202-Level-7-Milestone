@@ -19,25 +19,30 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path
 from tasks.views import *
 from tasks.apiviews import *
-
-from rest_framework.routers import SimpleRouter
+from rest_framework_nested.routers import SimpleRouter, NestedSimpleRouter
 
 router = SimpleRouter()
-router.register("api/task", TaskViewSet)
+router.register(r"api/v1/task", TaskViewSet)
+nested_router = NestedSimpleRouter(router, r"api/v1/task", lookup="task")
+nested_router.register("history", HistoryViewSet, basename="task-history")
 
-urlpatterns = [
-    path("", RedirectRootToTasks.as_view()),
-    path("admin/", admin.site.urls),
-    path("taskapi", TaskListAPI.as_view()),
-    path("tasks/", GenericTaskView.as_view()),
-    path("user/signup/", UserCreateView.as_view()),
-    path("user/login/", UserLoginView.as_view()),
-    path("user/logout/", LogoutView.as_view()),
-    path("create-task/", GenericTaskCreateView.as_view()),
-    path("update-task/<pk>/", GenericTaskUpdateView.as_view()),
-    path("detail-task/<pk>/", GenericTaskDetailView.as_view()),
-    path("delete-task/<pk>/", GenericTaskDeleteView.as_view()),
-    path("completed_tasks/", GenericCompletedTaskView.as_view()),
-    path("complete_task/<pk>/", GenericCompleteTaskView.as_view()),
-    path("all_tasks/", GenericAllTasksView.as_view()),
-] + router.urls
+urlpatterns = (
+    [
+        path("", RedirectRootToTasks.as_view()),
+        path("admin/", admin.site.urls),
+        path("taskapi", TaskListAPI.as_view()),
+        path("tasks/", GenericTaskView.as_view()),
+        path("user/signup/", UserCreateView.as_view()),
+        path("user/login/", UserLoginView.as_view()),
+        path("user/logout/", LogoutView.as_view()),
+        path("create-task/", GenericTaskCreateView.as_view()),
+        path("update-task/<pk>/", GenericTaskUpdateView.as_view()),
+        path("detail-task/<pk>/", GenericTaskDetailView.as_view()),
+        path("delete-task/<pk>/", GenericTaskDeleteView.as_view()),
+        path("completed_tasks/", GenericCompletedTaskView.as_view()),
+        path("complete_task/<pk>/", GenericCompleteTaskView.as_view()),
+        path("all_tasks/", GenericAllTasksView.as_view()),
+    ]
+    + router.urls
+    + nested_router.urls
+)

@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+
+
 
 STATUS_CHOICES = (
     ("PENDING", "PENDING"),
@@ -31,3 +36,12 @@ class History(models.Model):
     updated_status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     changed_date = models.DateField(auto_now=True)
     task_changed = models.ForeignKey(Task, on_delete=models.CASCADE, null = True, blank=True)
+
+@receiver(pre_save, sender=Task)
+def generate_history(sender, instance, **kwargs):
+    if Task.objects.filter(pk=instance.id).exists():
+        prev_task = Task.objects.get(pk=instance.id)
+        if instance.status == prev_task.status:
+            return
+        History(prev_status=prev_task.status, updated_status=instance.status, task_changed=instance).save()
+

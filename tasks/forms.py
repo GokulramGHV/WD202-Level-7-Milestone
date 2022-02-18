@@ -20,6 +20,7 @@ class TaskCreateForm(ModelForm):
                     visible.field.widget.attrs["class"] = input_field_style
             except:
                 visible.field.widget.attrs["class"] = input_field_style
+                visible.field.widget.attrs["rows"] = 5
 
     def clean_title(self):
         title = self.cleaned_data["title"]
@@ -35,7 +36,7 @@ class TaskCreateForm(ModelForm):
 
     class Meta:
         model = Task
-        fields = ["title", "description", "priority", "completed"]
+        fields = ["title", "description", "priority", "completed", "status"]
 
 
 class CustomUserCreateForm(UserCreationForm):

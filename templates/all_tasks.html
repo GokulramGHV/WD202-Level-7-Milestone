@@ -44,7 +44,13 @@
 						{{task.priority}}
 					</span>
 				</div>
-				<div class="text-slate-400">{{task.created_date|date:"D j M"}}</div>
+				<div class="text-slate-400">
+					{{task.created_date|date:"D j M"}}
+					<span
+						class="text-xs font-semibold {%if task.status == 'PENDING'%}text-blue-500{%elif task.status == 'COMPLETED'%}text-amber-500{%elif task.status == 'IN_PROGRESS'%}text-green-500{%else%}text-rose-500{%endif%} ml-0.5"
+						>{{ task.status }}</span
+					>
+				</div>
 
 				{% else %}
 				<div class="text-xl font-medium text-gray-900">
@@ -56,7 +62,13 @@
 						{{task.priority}}
 					</span>
 				</div>
-				<div class="text-slate-500">{{task.created_date|date:"D j M"}}</div>
+				<div class="text-slate-500">
+					{{task.created_date|date:"D j M"}}
+					<span
+						class="text-xs font-semibold {%if task.status == 'PENDING'%}text-blue-500{%elif task.status == 'COMPLETED'%}text-amber-500{%elif task.status == 'IN_PROGRESS'%}text-green-500{%else%}text-rose-500{%endif%} ml-0.5"
+						>{{ task.status }}</span
+					>
+				</div>
 				{% endif %}
 			</div>
 		</a>
