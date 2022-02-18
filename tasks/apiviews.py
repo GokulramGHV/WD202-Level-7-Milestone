@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from tasks.models import Task, STATUS_CHOICES
+from tasks.models import *
 from django.contrib.auth.models import User
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import (
     DjangoFilterBackend,
@@ -12,12 +12,15 @@ from django_filters.rest_framework import (
     ChoiceFilter,
     BooleanFilter
 )
+from rest_framework import generics, mixins
 
 
 class TaskFilter(FilterSet):
     title = CharFilter(lookup_expr="icontains")
-    status = ChoiceFilter(choices=STATUS_CHOICES)
-    completed = BooleanFilter()
+
+    class Meta:
+        model = Task
+        fields = ("title", "description", "completed", "status")
 
 class UserSerializer(ModelSerializer):
     class Meta:
@@ -52,3 +55,23 @@ class TaskListAPI(APIView):
         tasks = Task.objects.filter(deleted=False)
         data = TaskSerializer(tasks, many=True).data
         return Response({"tasks": data})
+
+
+class TaskFilter(FilterSet):
+    title = CharFilter(lookup_expr="icontains")
+    status = ChoiceFilter(choices=STATUS_CHOICES)
+    completed = BooleanFilter()
+
+
+class HistorySerializer(ModelSerializer):
+    task_changed = TaskSerializer(read_only=True)
+
+    class Meta:
+        model = History
+        fields = "__all__"
+
+class HistoryViewSet(mixins.RetrieveModelMixin,mixins.DestroyModelMixin,mixins.ListModelMixin,GenericViewSet):
+    queryset = History.objects.all()
+    serializer_class = HistorySerializer
+
+    
